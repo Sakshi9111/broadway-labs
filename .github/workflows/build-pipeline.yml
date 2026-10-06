@@ -6,8 +6,9 @@ on:
   pull_request:
     branches: [ "main", "devops-2" ]
 
-env: AWS_REGION: ap-south-1 
-ECR_REPOSITORY: web
+env: 
+  AWS_REGION: ap-south-1 
+  ECR_REPOSITORY: web
 
 jobs:
 
