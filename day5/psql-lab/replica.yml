@@ -1,0 +1,18 @@
+  pg-replica:
+    image: postgres:16
+    container_name: pg-replica
+    ports:
+      - "5433:5432"
+    environment:
+      PGPASSWORD: Repl#2026
+    volumes:
+      - replica-data:/var/lib/postgresql/data
+    user: postgres
+    entrypoint: >
+      bash -c "
+      if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+        pg_basebackup -h pg-primary -U replicator -D /var/lib/postgresql/data -Fp -Xs -R -S replica1 -P;
+      fi;
+      exec postgres -c hot_standby=on"
+    depends_on:
+      - pg-primary
