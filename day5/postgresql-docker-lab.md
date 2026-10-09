@@ -62,6 +62,214 @@ CREATE ROLE app_ro LOGIN PASSWORD 'AppRo#2026';
 CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'Repl#2026';
 
 3.2 Grant Database and Schema Permissions
+ PostgreSQL Docker Lab
+
+## 1. Start PostgreSQL Containers
+
+Start the containers in detached mode:
+
+```bash
+docker compose up -d
+```
+
+Check container status:
+
+```bash
+docker compose ps
+```
+
+Verify the PostgreSQL version:
+
+```bash
+docker exec -it pg-primary psql -U admin -d appdb -c "SELECT version();"
+```
+
+Connect to the database:
+
+```bash
+docker exec -it pg-primary psql -U admin -d appdb
+```
+
+## 2. Create and Populate the Orders Table
+
+Create the `orders` table:
+
+```sql
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    customer TEXT NOT NULL,
+    amount NUMERIC(10,2) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+Insert 100,000 sample records:
+
+```sql
+INSERT INTO orders (customer, amount)
+SELECT
+    'customer_' || (random() * 1000)::int,
+    (random() * 500)::numeric(10,2)
+FROM generate_series(1, 100000);
+```
+
+Verify the number of records:
+
+```sql
+SELECT count(*) FROM orders;
+```
+
+## 3. Create Least-Privilege Roles
+
+### 3.1 Create Roles
+
+```sql
+CREATE ROLE app_rw LOGIN PASSWORD 'AppRw#2026';
+CREATE ROLE app_ro LOGIN PASSWORD 'AppRo#2026';
+CREATE ROLE replicator REPLICATION LOGIN PASSWORD 'Repl#2026';
+```
+
+### 3.2 Grant Database and Schema Permissions
+
+```sql
+GRANT CONNECT ON DATABASE appdb TO app_rw, app_ro;
+GRANT USAGE ON SCHEMA public TO app_rw, app_ro;
+```
+
+### 3.3 Grant Read-Write Permissions
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE
+ON ALL TABLES IN SCHEMA public
+TO app_rw;
+
+GRANT USAGE, SELECT
+ON ALL SEQUENCES IN SCHEMA public
+TO app_rw;
+```
+
+### 3.4 Grant Read-Only Permissions
+
+```sql
+GRANT SELECT
+ON ALL TABLES IN SCHEMA public
+TO app_ro;
+```
+
+**Note:** These grants apply to existing objects. Configure `ALTER DEFAULT PRIVILEGES` if permissions should also apply to future tables and sequences.
+
+## 4. Test Role Permissions
+
+Attempt to delete records using the read-only role:
+
+```bash
+docker exec -it pg-primary \
+  psql -U app_ro -d appdb \
+  -c "DELETE FROM orders;"
+```
+
+Expected result: PostgreSQL returns a permission-denied error because `app_ro` has only `SELECT` permission on the table.
+
+## 5. Back Up the Database
+
+Create the backup directory on the host:
+
+```bash
+mkdir -p backups
+```
+
+Create a custom-format backup:
+
+```bash
+docker exec pg-primary pg_dump -U admin -Fc appdb \
+  > backups/appdb_$(date +%F).dump
+```
+
+List the backup files:
+
+```bash
+ls -lh backups/
+```
+
+Example backup filename:
+
+```text
+backups/appdb_2026-10-09.dump
+```
+
+## 6. Simulate a Disaster
+
+Drop the `orders` table:
+
+```bash
+docker exec -it pg-primary \
+  psql -U admin -d appdb \
+  -c "DROP TABLE orders;"
+```
+
+Verify that the table no longer exists:
+
+```bash
+docker exec -it pg-primary \
+  psql -U admin -d appdb \
+  -c "SELECT count(*) FROM orders;"
+```
+
+Expected result: The query fails because the table has been dropped.
+
+## 7. Restore the Database
+
+Restore the backup created today:
+
+```bash
+docker exec -i pg-primary \
+  pg_restore -U admin -d appdb \
+  --clean --if-exists \
+  < backups/appdb_$(date +%F).dump
+```
+
+If the backup was created on a different date, specify its actual filename instead of using `$(date +%F)`.
+
+**Warning:** The `--clean --if-exists` options remove existing objects covered by the backup before restoring them. Use these options carefully in production.
+
+## 8. Verify the Restore
+
+Check the number of restored records:
+
+```bash
+docker exec -it pg-primary \
+  psql -U admin -d appdb \
+  -c "SELECT count(*) FROM orders;"
+```
+
+Expected result:
+
+```text
+ count
+--------
+ 100000
+```
+
+## 9. Lab Checklist
+
+- [ ] Start PostgreSQL containers.
+- [ ] Verify the PostgreSQL version.
+- [ ] Create the `orders` table.
+- [ ] Insert 100,000 sample records.
+- [ ] Create read-write, read-only, and replication roles.
+- [ ] Test read-only permissions.
+- [ ] Create a database backup.
+- [ ] Simulate data loss by dropping the table.
+- [ ] Restore the database from the backup.
+- [ ] Verify that all 100,000 records are restored.
+
+## 10. Security Notes
+
+- Use environment variables or a secrets manager to store passwords securely.
+- Use sample passwords only in a local lab environment.
+- The `REPLICATION` role attribute alone does not configure streaming replication. Additional PostgreSQL configuration and authentication rules are required.
+- Test backup integrity and restoration regularly.
+- Configure default privileges if application roles need access to future tables and sequences.
 
 Allow the application roles to connect to appdb and use the public schema:
 
