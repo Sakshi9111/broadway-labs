@@ -1,0 +1,44 @@
+services:
+  pg-primary:
+    image: postgres:16
+    container_name: pg-primary
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ChangeMe123
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - primary-data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=5
+      -c max_replication_slots=5
+      -c hot_standby=on
+      -c shared_preload_libraries=pg_stat_statements
+      -c log_min_duration_statement=500
+    restart: unless-stopped
+  # pg-replica:
+  #   image: postgres:16
+  #   container_name: pg-replica
+  #   ports:
+  #     - "5433:5432"
+  #   environment:
+  #     PGPASSWORD: Repl#2026
+  #   volumes:
+  #     - replica-data:/var/lib/postgresql/data
+  #   user: postgres
+  #   entrypoint: >
+  #     bash -c "
+  #     if [ ! -s /var/lib/postgresql/data/PG_VERSION ]; then
+  #       pg_basebackup -h pg-primary -U replicator -D /var/lib/postgresql/data -Fp -Xs -R -S replica1 -P;
+  #     fi;
+  #     chmod 700 /var/lib/postgresql/data;
+  #     exec postgres -c hot_standby=on"
+  #   depends_on:
+  #     - pg-primary
+
+volumes:
+  primary-data:
+ # replica-data:
