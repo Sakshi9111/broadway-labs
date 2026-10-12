@@ -7,6 +7,6 @@
   tasks:
     - name: Uninstall Apache
       ansible.builtin.apt:
-        name: apache2
+        name: nginx
         state: absent
         purge: true

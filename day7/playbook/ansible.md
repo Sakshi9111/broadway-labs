@@ -10,12 +10,6 @@ ansible-playbook -i inventory.ini demo.yml
 ansible web -i inventory.ini -u ubuntu   --private-key path_to_pem   -m ansible.builtin.ping
 
 
-##########################
-# Debug Commands         #
-##########################
-Purpose
-
-	
 
 ### Commands
 
