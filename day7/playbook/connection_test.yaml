@@ -1,0 +1,6 @@
+- name: Test EC2 connection
+  hosts: web
+  remote_user: ubuntu
+  tasks:
+    - name: Test Ansible connectivity
+      ansible.builtin.ping:

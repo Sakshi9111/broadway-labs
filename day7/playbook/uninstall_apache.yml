@@ -1,0 +1,12 @@
+---
+
+- name: Completely remove Apache
+  hosts: web
+  become: true
+
+  tasks:
+    - name: Uninstall Apache
+      ansible.builtin.apt:
+        name: apache2
+        state: absent
+        purge: true
