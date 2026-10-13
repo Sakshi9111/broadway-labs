@@ -1,0 +1,5 @@
+aws_region      = "ap-south-1"
+project_name    = "broadway-lab"
+environment     = "dev"
+instance_type   = "t3.micro"
+app_bucket_name = "broadway-lab-s3"

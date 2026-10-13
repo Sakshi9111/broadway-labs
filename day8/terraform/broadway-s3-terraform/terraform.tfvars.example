@@ -1,0 +1,4 @@
+bucket_name = "broadway-lab-s3"
+aws_region  = "ap-south-1"
+project_name = "broadway-lab"
+environment = "lab"
