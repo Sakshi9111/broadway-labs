@@ -1,0 +1,15 @@
+---
+# postgres-pv.yaml (for Minikube with hostPath)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+  namespace: todo-app
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/postgres
+    type: DirectoryOrCreate

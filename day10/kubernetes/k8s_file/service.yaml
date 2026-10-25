@@ -1,0 +1,14 @@
+# django-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  namespace: todo-app
+spec:
+  selector:
+    app: django-app
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP

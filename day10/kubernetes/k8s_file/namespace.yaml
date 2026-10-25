@@ -1,0 +1,223 @@
+# namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo-app
+
+---
+# postgres-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret
+  namespace: todo-app
+type: Opaque
+stringData:
+  POSTGRES_DB: todos_db
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: BhuSak143@
+
+---
+# django-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: django-secret
+  namespace: todo-app
+type: Opaque
+stringData:
+  SECRET_KEY: "django-insecure-3!_n@+plf3@5p8@$l)v55byez=5-b3eq%lxbtf)z(abe&@3-o!"
+  DATABASE_ENGINE: django.db.backends.postgresql
+  DATABASE_NAME: todos_db
+  DATABASE_HOST: postgres-service
+  DATABASE_USER: postgres
+  DATABASE_PASSWORD: BhuSak143@
+  DATABASE_PORT: "5432"
+
+---
+# postgres-pv.yaml (for Minikube with hostPath)
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+  namespace: todo-app
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/postgres
+    type: DirectoryOrCreate
+
+---
+# postgres-pvc.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: todo-app
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+# postgres-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: todo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:17
+        ports:
+        - containerPort: 5432
+        envFrom:
+        - secretRef:
+            name: postgres-secret
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+
+---
+# postgres-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: todo-app
+spec:
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP
+
+---
+# django-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django-app
+  namespace: todo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: django-app
+  template:
+    metadata:
+      labels:
+        app: django-app
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.36
+        command: ['sh', '-c', 'until nc -z postgres-service 5432; do echo waiting for postgres; sleep 2; done;']
+      - name: migrate
+        image: todo-web:latest
+        imagePullPolicy: Never
+        command: ['python', 'manage.py', 'migrate']
+        envFrom:
+        - secretRef:
+            name: django-secret
+      containers:
+      - name: django
+        image: todo-web:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: django-secret
+        command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+
+---
+# django-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-service
+  namespace: todo-app
+spec:
+  selector:
+    app: django-app
+  ports:
+  - protocol: TCP
+    port: 8000
+    targetPort: 8000
+  type: ClusterIP
+
+---
+# ingress.yaml (Optional - if you have Ingress controller)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: django-ingress
+  namespace: todo-app
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: todo.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: django-service
+            port:
+              number: 8000
