@@ -15,13 +15,6 @@ Linux for DevOps Engineers · Broadway Infosys · DevOps Training
 - [Task 6: Find out why the logs grew](#task-6-find-out-why-the-logs-grew)
 - [Task 7: Make sure it never happens again](#task-7-make-sure-it-never-happens-again)
 - [Task 8: Clean up](#task-8-clean-up)
-- [Bonus task: Other culprits](#bonus-task-other-culprits)
-- [Answers to the questions](#answers-to-the-questions)
-- [Challenge solution](#challenge-solution)
-- [The troubleshooting routine](#the-troubleshooting-routine)
-- [Common mistakes](#common-mistakes)
-- [What full marks look like](#what-full-marks-look-like)
-
 ---
 
 ## Before you start

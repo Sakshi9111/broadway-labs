@@ -12,10 +12,7 @@ Linux for DevOps Engineers · Broadway Infosys · DevOps Training
 - [Setup](#setup)
 - [Your tasks](#your-tasks)
 - [Hints](#hints)
-- [What to submit](#what-to-submit)
 - [Questions](#questions)
-- [Challenge (optional)](#challenge-optional)
-- [How you will be marked](#how-you-will-be-marked)
 
 ---
 
