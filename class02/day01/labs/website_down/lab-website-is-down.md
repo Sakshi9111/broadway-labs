@@ -1,7 +1,6 @@
 # Lab: The Website Is Down
 
-Troubleshooting a failed nginx service · Broadway Infosys · DevOps Training · Linux for DevOps Engineers
-
+Troubleshooting a failed nginx service 
 ## Table of Contents
 
 - [Overview](#overview)
@@ -23,24 +22,9 @@ Troubleshooting a failed nginx service · Broadway Infosys · DevOps Training ·
 
 **Story:** You are the on-call engineer. The company website suddenly stops working. In this lab you will first build a healthy web server, then break it in two different ways, and fix each failure using only logs and system tools, exactly like a real incident.
 
-**Time:** 60 to 75 minutes · **Level:** Beginner
+**Level:** Beginner
 
 **What you will practise:** `systemctl`, `journalctl`, `nginx -t`, `ss`, `curl`, `kill`, editing a configuration file.
-
-**What you need**
-
-- Ubuntu (VM, EC2 instance or WSL2) and a user with `sudo`
-- Internet access (to install nginx)
-- A text editor in the terminal (`nano` is the easiest)
-
-**WSL users:** systemd must be enabled. Check with `systemctl --version`. If it fails, add these lines to `/etc/wsl.conf`, then run `wsl --shutdown` in Windows PowerShell and reopen Ubuntu:
-
-```ini
-[boot]
-systemd=true
-```
-
-**Pair option:** work with a classmate. One person runs the break commands in Parts 1 and 2 without showing them, and the other person diagnoses and fixes. Then swap roles.
 
 ## Learning outcomes
 
@@ -375,17 +359,6 @@ Use the same order every time a service will not start:
 | 5. Ports | `sudo ss -tulnp` | Who owns the port you need |
 | 6. Fix | edit the file, or `kill` the other process | Change one thing at a time |
 | 7. Verify | `nginx -t`, `restart`, `status`, `curl -I` | `active (running)` and `200 OK` from nginx |
-
-
-
-## What to submit
-
-Submit one document with screenshots or pasted terminal output, in this order:
-
-1. Checkpoint 0: healthy server
-2. Checkpoint 1: the four screenshots from Part 1
-3. Checkpoint 2: the four screenshots from Part 2
-4. Your answers to the questions below
 
 ## Check your understanding
 

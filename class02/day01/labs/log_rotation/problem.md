@@ -2,7 +2,7 @@
 
 Linux for DevOps Engineers · Broadway Infosys · DevOps Training
 
-> This file contains the **problem only**. Try to solve it on your own first. The step-by-step solution is in `lab-disk-is-filling-up-solution.md`.
+> This file contains the **problem only**. Try to solve it on your own first. The step-by-step solution is in `solution.md`.
 
 ## Table of Contents
 
@@ -143,16 +143,6 @@ Now:
 
 ### Task 6: Find out why the logs grew
 
-Use `/tmp/app.log` to answer:
-
-| Question | Your answer |
-|---|---|
-| How many lines does the file have? | |
-| How many lines contain `ERROR`? | |
-| What are the last 5 error lines? | |
-| What are the order numbers of the first 3 errors (numbers only)? | |
-
-**Evidence:** the command used for each answer, and its output.
 
 ### Task 7: Make sure it never happens again
 
@@ -176,7 +166,6 @@ Then:
 
 Remove everything this lab created: the demo folder, the logrotate rule and the sample log. Check that no background job from Task 5 is left running.
 
-**Evidence:** the commands and a final disk usage check.
 
 ---
 
@@ -197,29 +186,11 @@ Try each task without looking first. If you are stuck, these are the tools to re
 | Bonus | `journalctl`, `du`, `df -i` |
 
 ---
-
-## What to submit
-
-Submit **one document** with screenshots or pasted terminal output, in task order. For each task include:
-
-1. The command(s) you ran
-2. The output
-
 ## Questions
 
 Answer each in 2 to 3 sentences.
 
 1. What is the difference between `df` and `du`? When would you use each one?
 3. Why is emptying a live log file safer than deleting it?
-
-## Challenge (optional)
-
-Write a script `disk-alert.sh` that:
-
-- prints a warning and exits with code `1` when the root filesystem is more than 80% full
-- prints an OK message and exits with code `0` otherwise
-- can be scheduled to run every 5 minutes
-
-Test it by temporarily lowering the threshold below your current usage.
 
 ---
