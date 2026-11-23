@@ -626,6 +626,4 @@ pm2 list                              # app status
 pm2 logs myapp                        # app logs
 pm2 restart myapp                     # restart app
 sudo ss -tlnp | grep -E ':80|:3000'   # who is listening
-docker compose up -d --build         # start containers
-docker compose logs -f               # container logs
 ```
