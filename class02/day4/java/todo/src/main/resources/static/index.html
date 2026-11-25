@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Todo App</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; }
+    li { margin: 8px 0; }
+    .done { text-decoration: line-through; color: #888; }
+    button { margin-left: 8px; }
+    #error { color: red; }
+  </style>
+</head>
+<body>
+  <h1>My Todos</h1>
+  <input id="title" placeholder="What needs doing?">
+  <button onclick="addTodo()">Add</button>
+  <p id="error"></p>
+  <ul id="list"></ul>
+
+  <script>
+    const API = "/api/todos";
+
+    async function load() {
+      const todos = await (await fetch(API)).json();
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      todos.forEach(t => {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = t.title;
+        if (t.done) span.className = "done";
+
+        const toggle = document.createElement("button");
+        toggle.textContent = t.done ? "Undo" : "Done";
+        toggle.onclick = () => update(t, !t.done);
+
+        const del = document.createElement("button");
+        del.textContent = "Delete";
+        del.onclick = () => remove(t.id);
+
+        li.append(span, toggle, del);
+        list.append(li);
+      });
+    }
+
+    async function addTodo() {
+      const input = document.getElementById("title");
+      const res = await fetch(API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: input.value })
+      });
+      if (!res.ok) {
+        document.getElementById("error").textContent = (await res.json()).error;
+        return;
+      }
+      document.getElementById("error").textContent = "";
+      input.value = "";
+      load();
+    }
+
+    async function update(todo, done) {
+      await fetch(API + "/" + todo.id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: todo.title, done })
+      });
+      load();
+    }
+
+    async function remove(id) {
+      await fetch(API + "/" + id, { method: "DELETE" });
+      load();
+    }
+
+    load();
+  </script>
+</body>
+</html>
