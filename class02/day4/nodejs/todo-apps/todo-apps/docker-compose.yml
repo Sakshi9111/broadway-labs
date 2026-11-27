@@ -1,0 +1,11 @@
+services:
+  node-todo:
+    build: ./nodejs-todo
+    ports:
+      - "3000:3000"
+    volumes:
+      - node-data:/app/data
+
+
+volumes:
+  node-data:

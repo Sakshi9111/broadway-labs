@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Todo App</title>
+<style>
+  body{font-family:system-ui,sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#1f2937}
+  h1{margin-bottom:4px} .sub{color:#5b6472;margin-top:0}
+  .row{display:flex;gap:8px;margin:16px 0}
+  input[type=text]{flex:1;padding:10px;border:1px solid #cbd5e1;border-radius:6px;font-size:16px}
+  button{padding:10px 14px;border:0;border-radius:6px;background:#1f5fbf;color:#fff;font-size:16px;cursor:pointer}
+  ul{list-style:none;padding:0}
+  li{display:flex;align-items:center;gap:10px;padding:10px;border-bottom:1px solid #e5e7eb}
+  li span{flex:1} li.done span{text-decoration:line-through;color:#9ca3af}
+  li button{background:#dc2626;padding:4px 10px;font-size:14px}
+  footer{margin-top:24px;font-size:13px;color:#5b6472}
+</style>
+</head>
+<body>
+<h1>Todo App</h1>
+<p class="sub" id="runtime">loading...</p>
+<div class="row"><input type="text" id="title" placeholder="What needs doing?"><button id="add">Add</button></div>
+<ul id="list"></ul>
+<footer id="build"></footer>
+<script>
+const list = document.getElementById("list");
+const input = document.getElementById("title");
+const api = async (url, opts) => (await fetch(url, opts)).json();
+
+async function load() {
+  const todos = await api("/api/todos");
+  list.innerHTML = "";
+  todos.forEach((t) => {
+    const li = document.createElement("li");
+    if (t.done) li.className = "done";
+    const cb = document.createElement("input");
+    cb.type = "checkbox"; cb.checked = t.done;
+    cb.onchange = async () => { await api("/api/todos/" + t.id, { method: "PATCH" }); load(); };
+    const label = document.createElement("span");
+    label.textContent = t.title;
+    const del = document.createElement("button");
+    del.textContent = "Delete";
+    del.onclick = async () => { await api("/api/todos/" + t.id, { method: "DELETE" }); load(); };
+    li.append(cb, label, del);
+    list.append(li);
+  });
+}
+async function add() {
+  const title = input.value.trim();
+  if (!title) return;
+  await api("/api/todos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title }) });
+  input.value = "";
+  load();
+}
+document.getElementById("add").onclick = add;
+input.onkeydown = (e) => { if (e.key === "Enter") add(); };
+api("/api/info").then((i) => {
+  document.getElementById("runtime").textContent = "Running on " + i.runtime;
+  document.getElementById("build").textContent = "Build: " + i.build;
+});
+load();
+</script>
+</body>
+</html>

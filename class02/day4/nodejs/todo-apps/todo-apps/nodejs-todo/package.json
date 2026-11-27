@@ -1,0 +1,19 @@
+{
+  "name": "nodejs-todo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Tiny Node.js todo app for learning the build and run steps",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "test": "node --test",
+    "prebuild": "npm test",
+    "build": "node scripts/build.js",
+    "start": "node dist/src/server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^5.3.0"
+  }
+}
